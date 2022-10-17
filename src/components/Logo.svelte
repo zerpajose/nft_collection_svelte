@@ -1,0 +1,1 @@
+<img src="/src/assets/crypto-devs.svg" alt="crypto-devs" />
