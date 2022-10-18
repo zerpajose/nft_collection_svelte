@@ -3,14 +3,15 @@ import Web3Modal from 'web3modal'
 
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './constants'
 
-import { loading, presaleStarted, presaleEnded, isOwner, tokenIdsMinted } from '../stores/store'
-let presaleStartedValue, loadingValue, presaleEndedValue, isOwnerValue, tokenIdsMintedValue
+import { loading, presaleStarted, presaleEnded, isOwner, tokenIdsMinted, txHash } from '../stores/store'
+let presaleStartedValue, loadingValue, presaleEndedValue, isOwnerValue, tokenIdsMintedValue, txHashValue
 
 loading.subscribe((value) => loadingValue = value)
 presaleStarted.subscribe((value) => presaleStartedValue = value)
 presaleEnded.subscribe((value) => presaleEndedValue = value)
 isOwner.subscribe((value) => isOwnerValue = value)
 tokenIdsMinted.subscribe((value) => tokenIdsMintedValue = value)
+txHash.subscribe((value) => txHashValue = value)
 
 /**
  * Mint an NFT during the presale
@@ -29,6 +30,7 @@ const presaleMint = async () => {
 
     window.alert("You successfully minted a Crypto Dev!")
 
+    txHash.set(tx.hash)
     return tx.hash
 
   } catch (err) {
@@ -52,6 +54,7 @@ const publicMint = async () => {
 
     window.alert("You successfully minted a Crypto Dev!")
 
+    txHash.set(tx.hash)
     return tx.hash
 
   } catch (err) {
@@ -76,6 +79,7 @@ const publicMint = async () => {
     
     await checkIfPresaleStarted()
 
+    txHash.set(tx.hash)
     return tx.hash
 
   } catch (err) {

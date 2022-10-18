@@ -5,7 +5,8 @@
 
   import Main from './components/Main.svelte'
   import Navbar from './components/Navbar.svelte'
-
+  import TxModal from './components/TXModal.svelte'
+  
   import { getProviderOrSigner } from './lib/functions'
 
   import { chainConnected } from './stores/store'
@@ -43,8 +44,6 @@
         window.location.reload()
       });
 
-      // Check if presale has started and ended
-      // const _presaleStarted = checkIfPresaleStarted()
       checkIfPresaleStarted().then(async (_presaleStarted)=>{
         console.log(`App: _presaleStarted: ${_presaleStarted}`)
 
@@ -85,10 +84,9 @@
     <Main />
   {/await}
 </div>
-<Modal
-  closeButton={false}
-  closeOnEsc={false}
-  closeOnOuterClick={false}
->
+<Modal closeButton={false} closeOnEsc={false} closeOnOuterClick={false}>
   <Content />
+</Modal>
+<Modal>
+  <TxModal />
 </Modal>

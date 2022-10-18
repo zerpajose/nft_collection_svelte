@@ -10,3 +10,5 @@ export const presaleEnded = writable(false)
 export const isOwner = writable(false)
 // tokenIdsMinted keeps track of the number of tokenIds that have been minted
 export const tokenIdsMinted = writable("0")
+
+export const txHash = writable('')

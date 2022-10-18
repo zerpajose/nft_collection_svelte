@@ -34,6 +34,7 @@
   const publicMintButton = async () => {
     try {
       const hash = await publicMint()
+      
       console.log(`Public Mint: ${hash}`);
 
     } catch (err) {
