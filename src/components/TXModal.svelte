@@ -1,6 +1,6 @@
 <script>
-  import { getContext } from 'svelte';
-  import Popup from './Popup.svelte';
+  import { getContext } from 'svelte'
+  import Popup from './Popup.svelte'
   import { txHash } from '../stores/store'
 
   const { open, close } = getContext('simple-modal')
@@ -12,7 +12,8 @@
   const showModalTxHash = () => open(
     Popup,
     {
-      message: `Transaction confirmed hash: ${txHashValue}`
+      type: "txhash",
+      message: txHashValue
     }
   )
 

@@ -13,9 +13,7 @@
 
   const startPresaleButton = async () => {
     try {
-      const hash = await startPresale()
-      console.log(`Start Presale: ${hash}`);
-
+      await startPresale()
     } catch (err) {
       console.error(err)
     }
@@ -23,9 +21,7 @@
 
   const presaleMintButton = async () => {
     try {
-      const hash = await presaleMint()
-      console.log(`Presale Mint: ${hash}`);
-
+      await presaleMint()
     } catch (err) {
       console.error(err)
     }
@@ -33,10 +29,7 @@
 
   const publicMintButton = async () => {
     try {
-      const hash = await publicMint()
-      
-      console.log(`Public Mint: ${hash}`);
-
+      await publicMint()
     } catch (err) {
       console.error(err)
     }

@@ -28,8 +28,6 @@ const presaleMint = async () => {
     await tx.wait()
     loading.set(false)
 
-    window.alert("You successfully minted a Crypto Dev!")
-
     txHash.set(tx.hash)
     return tx.hash
 
@@ -51,8 +49,6 @@ const publicMint = async () => {
     loading.set(true)
     await tx.wait()
     loading.set(false)
-
-    window.alert("You successfully minted a Crypto Dev!")
 
     txHash.set(tx.hash)
     return tx.hash
@@ -179,7 +175,7 @@ const getTokenIdsMinted = async () => {
   } catch (err) {
     console.error(err)
   }
-};
+}
 
 const getProviderOrSigner = async (needSigner = false) => {
   const providerOptions = {

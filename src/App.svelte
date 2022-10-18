@@ -6,7 +6,7 @@
   import Main from './components/Main.svelte'
   import Navbar from './components/Navbar.svelte'
   import TxModal from './components/TXModal.svelte'
-  
+
   import { getProviderOrSigner } from './lib/functions'
 
   import { chainConnected } from './stores/store'
@@ -42,11 +42,9 @@
 
       window.ethereum.on('accountsChanged', ()=>{
         window.location.reload()
-      });
+      })
 
       checkIfPresaleStarted().then(async (_presaleStarted)=>{
-        console.log(`App: _presaleStarted: ${_presaleStarted}`)
-
         if (_presaleStarted) {
           await checkIfPresaleEnded()
         }
@@ -60,15 +58,15 @@
         if (_presaleStarted) {
           const _presaleEnded = await checkIfPresaleEnded()
           if (_presaleEnded) {
-            clearInterval(presaleEndedInterval);
+            clearInterval(presaleEndedInterval)
           }
         }
-      }, 5 * 1000);
+      }, 5 * 1000)
 
       // set an interval to get the number of token Ids minted every 5 seconds
       setInterval(async function () {
-        await getTokenIdsMinted();
-      }, 5 * 1000);
+        await getTokenIdsMinted()
+      }, 5 * 1000)
     }
   }
 

@@ -12,7 +12,7 @@
   let tokenIdsMintedValue, chainID
 
 	tokenIdsMinted.subscribe((value) => {
-		tokenIdsMintedValue = value;
+		tokenIdsMintedValue = value
 	})
 
   const getChain = async () => {

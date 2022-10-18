@@ -1,6 +1,6 @@
 <script>
-  import { getContext } from 'svelte';
-  import Popup from './Popup.svelte';
+  import { getContext } from 'svelte'
+  import Popup from './Popup.svelte'
   import { chainConnected } from '../stores/store'
 
   const { open, close } = getContext('simple-modal')
@@ -10,6 +10,7 @@
   const showModalConnect = () => open(
     Popup,
     {
+      type: "connect",
       message: 'Please connect your wallet to Mumbai Network (Polygon Testnet)'
     }
   )
