@@ -1,14 +1,16 @@
+import { BigNumber } from 'ethers/lib'
 import { writable } from 'svelte/store'
+
+const zero = BigNumber.from(0);
 
 export const loading = writable(false)
 export const chainConnected = writable('')
 
-export const presaleStarted = writable(false)
-// presaleEnded keeps track of whether the presale ended
-export const presaleEnded = writable(false)
-// checks if the currently connected MetaMask wallet is the owner of the contract
+export const tokensToBeClaimed = writable(zero)
+export const balanceOfCryptoDevTokens = writable(zero)
+export const tokenAmount = writable(zero)
+export const tokensMinted = writable(zero)
+
 export const isOwner = writable(false)
-// tokenIdsMinted keeps track of the number of tokenIds that have been minted
-export const tokenIdsMinted = writable("0")
 
 export const txHash = writable('')
