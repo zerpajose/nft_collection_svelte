@@ -7,13 +7,13 @@
   import Button from './Button.svelte'
   import Logo from './Logo.svelte'
 
-  import { tokenIdsMinted } from '../stores/store'
+  //import { tokenIdsMinted } from '../stores/store'
 
   let tokenIdsMintedValue, chainID
 
-	tokenIdsMinted.subscribe((value) => {
-		tokenIdsMintedValue = value
-	})
+	// tokenIdsMinted.subscribe((value) => {
+	// 	tokenIdsMintedValue = value
+	// })
 
   const getChain = async () => {
     const signer = await getProviderOrSigner(true)

@@ -1,149 +1,168 @@
-import { Contract, utils, providers } from 'ethers'
+import { Contract, utils, providers, BigNumber } from 'ethers/lib'
 import Web3Modal from 'web3modal'
 
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from './constants'
+import { TOKEN_CONTRACT_ABI, TOKEN_CONTRACT_ADDRESS, NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI } from './constants'
 
-import { loading, presaleStarted, presaleEnded, isOwner, tokenIdsMinted, txHash } from '../stores/store'
-let presaleStartedValue, loadingValue, presaleEndedValue, isOwnerValue, tokenIdsMintedValue, txHashValue
+import { loading, isOwner, txHash, tokensToBeClaimed, balanceOfCryptoDevTokens, tokensMinted } from '../stores/store'
+let tokensToBeClaimedValue, loadingValue, balanceOfCryptoDevTokensValue, isOwnerValue, tokensMintedValue, txHashValue
 
 loading.subscribe((value) => loadingValue = value)
-presaleStarted.subscribe((value) => presaleStartedValue = value)
-presaleEnded.subscribe((value) => presaleEndedValue = value)
 isOwner.subscribe((value) => isOwnerValue = value)
-tokenIdsMinted.subscribe((value) => tokenIdsMintedValue = value)
 txHash.subscribe((value) => txHashValue = value)
 
-/**
- * Mint an NFT during the presale
- */
-const presaleMint = async () => {
-  try {
-    const signer = await getProviderOrSigner(true)
+tokensToBeClaimed.subscribe((value) => tokensToBeClaimedValue = value)
+balanceOfCryptoDevTokens.subscribe((value) => balanceOfCryptoDevTokensValue = value)
+tokensMinted.subscribe((value) => tokensMintedValue = value)
 
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
 
-    const tx = await nftContract.presaleMint({ value: utils.parseEther("0.01") })
-
-    loading.set(true)
-    await tx.wait()
-    loading.set(false)
-
-    txHash.set(tx.hash)
-    return tx.hash
-
-  } catch (err) {
-    console.error(err)
-  }
-}
+const zero = BigNumber.from(0);
 
 /**
- * Mint an NFT after the presale
+ * getTokensToBeClaimed: checks the balance of tokens that can be claimed by the user
  */
-const publicMint = async () => {
-  try {
-    const signer = await getProviderOrSigner(true)
-
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
-
-    const tx = await nftContract.mint({ value: utils.parseEther("0.01") })
-    loading.set(true)
-    await tx.wait()
-    loading.set(false)
-
-    txHash.set(tx.hash)
-    return tx.hash
-
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-/*
- * starts the presale for the NFT Collection
- */
- const startPresale = async () => {
-  try {
-    const signer = await getProviderOrSigner(true)
-
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
-    
-    const tx = await nftContract.startPresale()
-
-    loading.set(true)
-    await tx.wait()
-    loading.set(false)
-    
-    await checkIfPresaleStarted()
-
-    txHash.set(tx.hash)
-    return tx.hash
-
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-/*
- * checks if the presale has started by quering the `presaleStarted` variable in the contract
- */
-const checkIfPresaleStarted = async () => {
+const getTokensToBeClaimed = async () => {
   try {
     const provider = await getProviderOrSigner()
-
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
     
-    const _presaleStarted = await nftContract.presaleStarted()
-
-    if (!_presaleStarted) {
-      await getOwner()
-    }
-
-    presaleStarted.set(_presaleStarted)
-
-    return _presaleStarted
-
-  } catch (err) {
-    console.error(err)
-    return false
-  }
-}
-
-/**
-* checks if the presale has ended by quering the `presaleEnded` variable in the contract
-*/
-const checkIfPresaleEnded = async () => {
-  try {
-    const provider = await getProviderOrSigner()
-
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
+    const nftContract = new Contract(NFT_CONTRACT_ADDRESS, NFT_CONTRACT_ABI, provider)
     
-    const _presaleEnded = await nftContract.presaleEnded()
+    const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider)
     
-    const hasEnded = _presaleEnded.lt(Math.floor(Date.now() / 1000))
-
-    if (hasEnded) {
-      presaleEnded.set(true)
+    const signer = await getProviderOrSigner(true)
+    
+    const address = await signer.getAddress()
+    
+    const balance = await nftContract.balanceOf(address)
+    
+    if (balance === zero) {
+      tokensToBeClaimed.set(zero)
     } else {
-      presaleEnded.set(false)
+      var amount = 0
+
+      for (var i = 0; i < balance; i++) {
+        const tokenId = await nftContract.tokenOfOwnerByIndex(address, i)
+        const claimed = await tokenContract.tokenIdsClaimed(tokenId)
+        if (!claimed) {
+          amount++
+        }
+      }
+
+      tokensToBeClaimed.set(BigNumber.from(amount))
     }
-
-    return hasEnded
-
   } catch (err) {
     console.error(err)
-    return false
+    tokensToBeClaimed.set(zero)
   }
 }
 
 /**
- * calls the contract to retrieve the owner
+ * getBalanceOfCryptoDevTokens: checks the balance of Crypto Dev Tokens's held by an address
+ */
+const getBalanceOfCryptoDevTokens = async () => {
+  try {
+    const provider = await getProviderOrSigner()
+
+    const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider)
+
+    const signer = await getProviderOrSigner(true)
+
+    const address = await signer.getAddress()
+
+    const balance = await tokenContract.balanceOf(address)
+
+    balanceOfCryptoDevTokens.set(balance)
+  } catch (err) {
+    console.error(err)
+    balanceOfCryptoDevTokens.set(zero)
+  }
+}
+
+/**
+ * mintCryptoDevToken: mints `amount` number of tokens to a given address
+ */
+const mintCryptoDevToken = async (amount) => {
+  try {
+    const signer = await getProviderOrSigner(true)
+
+    const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, signer)
+    const value = 0.001 * amount
+    const tx = await tokenContract.mint(amount, {
+      value: utils.parseEther(value.toString()),
+    })
+
+    loading.set(true)
+    await tx.wait()
+    loading.set(false)
+    window.alert("Sucessfully minted Crypto Dev Tokens")
+
+    await getBalanceOfCryptoDevTokens()
+    await getTotalTokensMinted()
+    await getTokensToBeClaimed()
+
+    return tx.hash
+
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * claimCryptoDevTokens: Helps the user claim Crypto Dev Tokens
+ */
+const claimCryptoDevTokens = async () => {
+  try {
+
+    const signer = await getProviderOrSigner(true)
+
+    const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, signer)
+    const tx = await tokenContract.claim()
+
+    loading.set(true)
+    await tx.wait()
+    loading.set(false)
+    window.alert("Sucessfully claimed Crypto Dev Tokens")
+
+    await getBalanceOfCryptoDevTokens()
+    await getTotalTokensMinted()
+    await getTokensToBeClaimed()
+
+    return tx.hash
+
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * getTotalTokensMinted: Retrieves how many tokens have been minted till now
+ * out of the total supply
+ */
+const getTotalTokensMinted = async () => {
+  try {
+    const provider = await getProviderOrSigner()
+
+    const tokenContract = new Contract(
+      TOKEN_CONTRACT_ADDRESS,
+      TOKEN_CONTRACT_ABI,
+      provider
+    )
+
+    const _tokensMinted = await tokenContract.totalSupply()
+    tokensMinted.set(_tokensMinted)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/**
+ * getOwner: calls the contract to retrieve the owner
  */
 const getOwner = async () => {
   try {
 
     const provider = await getProviderOrSigner()
 
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
+    const nftContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider)
     
     const _owner = await nftContract.owner()
     
@@ -161,17 +180,19 @@ const getOwner = async () => {
 }
 
 /**
- * gets the number of tokenIds that have been minted
+ * withdrawCoins: withdraws ether and tokens by calling
+ * the withdraw function in the contract
  */
-const getTokenIdsMinted = async () => {
+const withdrawCoins = async () => {
   try {
-    const provider = await getProviderOrSigner()
+    const signer = await getProviderOrSigner(true)
+    const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, signer)
 
-    const nftContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
-    
-    const _tokenIds = await nftContract.tokenIds()
-    
-    tokenIdsMinted.set(_tokenIds.toString())
+    const tx = await tokenContract.withdraw()
+    loading.set(true)
+    await tx.wait()
+    loading.set(false)
+    await getOwner()
   } catch (err) {
     console.error(err)
   }
@@ -205,4 +226,13 @@ const getProviderOrSigner = async (needSigner = false) => {
   return provider
 }
 
-export { presaleMint, publicMint, startPresale, checkIfPresaleStarted, checkIfPresaleEnded, getTokenIdsMinted, getProviderOrSigner }
+export {
+  getProviderOrSigner,
+  getOwner,
+  getBalanceOfCryptoDevTokens,
+  mintCryptoDevToken,
+  claimCryptoDevTokens,
+  getTotalTokensMinted,
+  withdrawCoins,
+  getTokensToBeClaimed
+}

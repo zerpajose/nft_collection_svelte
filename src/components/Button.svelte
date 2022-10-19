@@ -1,60 +1,77 @@
 <script>
   import { onMount } from 'svelte'
-  import { startPresale, presaleMint, publicMint, getProviderOrSigner } from '../lib/functions'
+  import { BigNumber } from 'ethers'
+  import { getProviderOrSigner, withdrawCoins, claimCryptoDevTokens, mintCryptoDevToken } from '../lib/functions'
 
-  import { loading, isOwner, presaleStarted, presaleEnded } from '../stores/store'
+  import { loading, isOwner, tokensToBeClaimed, tokenAmount } from '../stores/store'
+    import { formatBytes32String } from 'ethers/lib/utils';
 
-  let isOwnerValue, loadingValue, presaleStartedValue, presaleEndedValue
+  let isOwnerValue, loadingValue, tokensToBeClaimedValue, tokenAmountValue
 
   loading.subscribe((value) => loadingValue = value)
   isOwner.subscribe((value) => isOwnerValue = value)
-  presaleStarted.subscribe((value) => presaleStartedValue = value)
-  presaleEnded.subscribe((value) => presaleEndedValue = value)
+  tokensToBeClaimed.subscribe((value) => tokensToBeClaimedValue = value)
+  tokenAmount.subscribe((value) => tokenAmountValue = value)
 
-  const startPresaleButton = async () => {
+  const withdrawCoinsButton = async () => {
     try {
-      await startPresale()
+      await withdrawCoins()
     } catch (err) {
       console.error(err)
     }
   }
 
-  const presaleMintButton = async () => {
+  const claimCryptoDevTokensButton = async () => {
     try {
-      await presaleMint()
+      await claimCryptoDevTokens()
     } catch (err) {
       console.error(err)
     }
   }
 
-  const publicMintButton = async () => {
+  const mintCryptoDevTokenButton = async (amount) => {
     try {
-      await publicMint()
+      await mintCryptoDevToken(amount)
     } catch (err) {
       console.error(err)
     }
+  }
+
+  const handleInput = (e) => {
+    console.log(`e: ${e.target.value}`)
+    
+    tokenAmount.set(BigNumber.from(e.target.value))
   }
 </script>
 
 {#if loadingValue}
   <button class="button">Loading...</button>
+
 {:else if isOwnerValue}
-  <div class="description">You are the owner!</div>
-{:else if isOwnerValue && !presaleStartedValue}
-  <button class="button" on:click={startPresaleButton}>Start Presale!</button>
-{:else if !presaleStartedValue}
-  <div class="description">Presale hasnt started!</div>
-{:else if presaleStartedValue && !presaleEndedValue}
+<button class="button" on:click={withdrawCoinsButton}>Start Presale!</button>
+
+{:else if tokensToBeClaimedValue > 0}
   <div class="description">
-    Presale has started!!! If your address is whitelisted, Mint a CryptoDev 🥳
+    {tokensToBeClaimedValue * 10} Tokens can be claimed!
   </div>
-  <button class="button" on:click={presaleMintButton}>
-    Presale Mint 🚀
+  <button class="button" on:click={claimCryptoDevTokensButton}>
+    Claim Tokens
   </button>
-{:else if presaleStartedValue && presaleEndedValue}
-  <button class="button" on:click={publicMintButton}>Public Mint 🚀</button>
+
 {:else}
-  <span>In construction</span>
+  <div>
+    <input type="number" placeholder="Amount of Tokens" class="input"
+      on:change={handleInput}
+    />
+  </div>
+
+  <button
+    class="button"
+    disabled={!(tokenAmountValue > 0)}
+    on:click={() => mintCryptoDevTokenButton(tokenAmountValue)}
+  >
+    Mint Tokens
+  </button>
 {/if}
 
 
